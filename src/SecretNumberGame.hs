@@ -1,5 +1,9 @@
 module SecretNumberGame
     ( initGame
+    , tooLowOrTooHighText
+    , correctGuessText
+    , validGuess
+    , GameState (GameState)
     ) where
 
 import System.Random
@@ -22,12 +26,18 @@ correctGuessText gs =
     tryOrTries (numTries gs)
         where tryOrTries n = if n == 1 then " try." else " tries."
 
+validGuess :: String -> Bool
+validGuess s =
+    case readMaybe s :: Maybe Integer of
+        Nothing -> False
+        Just s  -> True
+
 safeRead :: IO Integer
 safeRead = do
     s <- getLine
-    case readMaybe s :: Maybe Integer of
-        Nothing -> putStrLn "Only numbers" >> safeRead
-        Just s  -> return s
+    if validGuess s
+        then return $ read s
+        else putStrLn "Only integers" >> safeRead
 
 tooLowOrTooHighText :: Integer -> Integer -> String
 tooLowOrTooHighText answer guess =
