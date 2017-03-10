@@ -7,20 +7,20 @@ import System.Console.ANSI (clearScreen)
 import Text.Read (readMaybe)
 
 data GameState = GameState
-    { numberToGuess::Integer
-    , numTries     ::Integer
+    { numberToGuess :: Integer
+    , numTries      :: Integer
     } deriving (Show)
 
--- type Guess = Integer
-
 minGuess = 1
-maxGuess = 4
+maxGuess = 100
 
-showCorrectText :: GameState -> IO ()
-showCorrectText gs = clearScreen >> putStrLn "That was correct!"
-
-howToPlayText :: Integer -> Integer -> String
-howToPlayText min max = "Enter a number between " ++ show min ++ " and " ++ show max
+correctGuessText :: GameState -> String
+correctGuessText gs = 
+    show (numberToGuess gs) ++ 
+    " is correct! It took you " ++ 
+    show (numTries gs) ++ 
+    tryOrTries (numTries gs)
+        where tryOrTries n = if n == 1 then " try." else " tries."
 
 safeRead :: IO Integer
 safeRead = do
@@ -37,18 +37,20 @@ tooLowOrTooHighText answer guess =
 
 gameLoop :: GameState -> IO ()
 gameLoop gs = do
+    print $ numberToGuess gs
     putStrLn "Enter a number:"
     s <- safeRead
     let num = s :: Integer
     if num == numberToGuess gs
-        then showCorrectText gs
+        then putStrLn $ correctGuessText gs
         else do
             putStrLn $ tooLowOrTooHighText (numberToGuess gs) s
             gameLoop $ GameState (numberToGuess gs) (numTries gs + 1)
 
 main = do
-    pTime <- randomRIO (minGuess, maxGuess)
-    let gameState = GameState pTime 1
+    answer <- randomRIO (minGuess, maxGuess)
+    let gameState = GameState answer 1
     clearScreen
-    print $ howToPlayText minGuess maxGuess
+    putStrLn $ howToPlayText minGuess maxGuess
     gameLoop gameState
+        where howToPlayText min max = "Enter a number between " ++ show min ++ " and " ++ show max
