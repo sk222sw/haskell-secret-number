@@ -8,10 +8,11 @@ type GuessRange = (Integer, Integer)
 type Answer     = Integer
 type Guess      = Integer
 
-data GameState      =  GameState
-    { numberToGuess :: Answer
-    , numTries      :: Integer
-    , guessRange    :: GuessRange
+data GameState = GameState
+    { numberToGuess   :: Answer
+    , numTries        :: Integer
+    , guessRange      :: GuessRange
+    , previousGuesses :: [Integer]
     } deriving (Show)
 
 minGuess = 1
@@ -71,12 +72,13 @@ tooLowOrTooHighText answer guess =
 
 gameLoop :: GameState -> IO ()
 gameLoop gs = do
-    print $ numberToGuess gs
+    print $ previousGuesses gs
     putStrLn "Enter a number:"
     s <- safeRead gs
     let newState = GameState (numberToGuess gs) 
                              (numTries gs) 
                              (calculateNewRange (guessRange gs) (numberToGuess gs) s)
+                             (previousGuesses gs)
     let num = s :: Integer
     if num == numberToGuess newState
         then putStrLn $ correctGuessText newState
@@ -85,11 +87,12 @@ gameLoop gs = do
             gameLoop $ GameState (numberToGuess newState) 
                                  (numTries newState + 1) 
                                  (fst $ guessRange newState, snd $ guessRange newState)
+                                 (s:(previousGuesses gs))
 
 initGame :: IO ()
 initGame = do
     answer <- randomRIO (minGuess, maxGuess)
-    let gameState = GameState answer 1 (minGuess, maxGuess)
+    let gameState = GameState answer 1 (minGuess, maxGuess) []
     clearScreen
     putStrLn $ howToPlayText minGuess maxGuess
     gameLoop gameState
