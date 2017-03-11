@@ -1,7 +1,6 @@
 module MainMenu where
 
 import System.Console.ANSI
-import Control.Monad (void)
 import SecretNumberGame (initGame)
 
 getInstructions :: String
@@ -27,7 +26,7 @@ showMenu = do
             clearScreen
             putStrLn ""
             showMenu
-        '3' -> void clearScreen
-        _ -> mainMenu
+        '3' -> clearScreen
+        _   -> mainMenu
 
 mainMenu = clearScreen >> showMenu
