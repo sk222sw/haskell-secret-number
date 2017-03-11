@@ -63,9 +63,6 @@ safeRead gs = do
                 else putStrLn (outOfRangeText (guessRange gs)) >> safeRead gs
         else putStrLn "Only integers" >> safeRead gs
 
-tooLow :: Integer -> Integer -> Bool
-tooLow guess answer = guess < answer
-
 tooLowOrTooHighText :: Integer -> Integer -> String
 tooLowOrTooHighText answer guess =
     if answer > guess 
