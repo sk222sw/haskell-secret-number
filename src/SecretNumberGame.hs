@@ -74,17 +74,17 @@ gameLoop gs = do
     print $ numberToGuess gs
     putStrLn "Enter a number:"
     s <- safeRead gs
-    let gameState2 = GameState (numberToGuess gs) 
-                               (numTries gs) 
-                               (calculateNewRange (guessRange gs) (numberToGuess gs) s)
+    let newState = GameState (numberToGuess gs) 
+                             (numTries gs) 
+                             (calculateNewRange (guessRange gs) (numberToGuess gs) s)
     let num = s :: Integer
-    if num == numberToGuess gameState2
-        then putStrLn $ correctGuessText gameState2
+    if num == numberToGuess newState
+        then putStrLn $ correctGuessText newState
         else do
-            putStrLn $ tooLowOrTooHighText (numberToGuess gameState2) s
-            gameLoop $ GameState (numberToGuess gameState2) 
-                                 (numTries gameState2 + 1) 
-                                 (fst $ guessRange gameState2, snd $ guessRange gameState2)
+            putStrLn $ tooLowOrTooHighText (numberToGuess newState) s
+            gameLoop $ GameState (numberToGuess newState) 
+                                 (numTries newState + 1) 
+                                 (fst $ guessRange newState, snd $ guessRange newState)
 
 initGame :: IO ()
 initGame = do
