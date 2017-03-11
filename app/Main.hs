@@ -2,6 +2,6 @@
 
 module Main where
 
-import SecretNumberGame
+import MainMenu
 
-main = initGame
+main = mainMenu
