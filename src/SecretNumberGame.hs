@@ -45,6 +45,13 @@ guessIsInRange range guess
     | guess == snd range = False
     | otherwise          = True
 
+outOfRangeText :: GuessRange -> String
+outOfRangeText range = 
+        "Your guess should be between " 
+     ++ show (fst $ range) 
+     ++ " and " 
+     ++ show (snd $ range)
+
 -- TODO: Dont nest ifs
 safeRead :: GameState -> IO Integer
 safeRead gs = do
@@ -53,7 +60,7 @@ safeRead gs = do
         then
             if guessIsInRange (guessRange gs) (read s)
                 then return $ read s
-                else safeRead gs
+                else putStrLn (outOfRangeText (guessRange gs)) >> safeRead gs
         else putStrLn "Only integers" >> safeRead gs
 
 tooLow :: Integer -> Integer -> Bool
@@ -70,12 +77,17 @@ gameLoop gs = do
     print $ numberToGuess gs
     putStrLn "Enter a number:"
     s <- safeRead gs
+    let gameState2 = GameState (numberToGuess gs) 
+                               (numTries gs) 
+                               (calculateNewRange (guessRange gs) (numberToGuess gs) s)
     let num = s :: Integer
-    if num == numberToGuess gs
-        then putStrLn $ correctGuessText gs
+    if num == numberToGuess gameState2
+        then putStrLn $ correctGuessText gameState2
         else do
-            putStrLn $ tooLowOrTooHighText (numberToGuess gs) s
-            gameLoop $ GameState (numberToGuess gs) (numTries gs + 1) (minGuess, maxGuess)
+            putStrLn $ tooLowOrTooHighText (numberToGuess gameState2) s
+            gameLoop $ GameState (numberToGuess gameState2) 
+                                 (numTries gameState2 + 1) 
+                                 (fst $ guessRange gameState2, snd $ guessRange gameState2)
 
 initGame :: IO ()
 initGame = do

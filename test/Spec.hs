@@ -37,3 +37,6 @@ spec = do
             calculateNewRange oldRange answer guess `shouldBe` (40,93)
         it "should make the lower range the guess if guess is too low" $
             calculateNewRange (34,93) 55 70 `shouldBe` (34,70)
+    describe "outOfRangeText" $
+        it "should show a text with the guess range in it" $
+            outOfRangeText (24, 87) `shouldBe` "Your guess should be between 24 and 87"
