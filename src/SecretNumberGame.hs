@@ -12,16 +12,27 @@ data GameState = GameState
     { numberToGuess   :: Answer
     , numTries        :: Integer
     , guessRange      :: GuessRange
-    , previousGuesses :: [Integer]
+    , previousGuesses :: [Guess]
     } deriving (Show)
 
 minGuess = 1
 maxGuess = 100
 
+gameStatus :: GameState -> [String]
+gameStatus gs = ["hej"]
+
+guessRangeText :: GuessRange -> String
+guessRangeText range = "Valid guesses: " ++ show (fst range) ++ " to " ++ show (snd range)
+
+previousGuessesText :: [Guess] -> String
+previousGuessesText xs = init $ "Previous guesses: " ++ guessesToString xs
+    where guessesToString [] = ""
+          guessesToString (x:xs) = show x ++ " " ++ guessesToString xs
+
 calculateNewRange :: GuessRange -> Answer -> Guess -> GuessRange
 calculateNewRange range answer guess
     | guess < answer = (guess, snd range)
-    | otherwise = (fst range, guess)
+    | otherwise      = (fst range, guess)
 
 correctGuessText :: GameState -> String
 correctGuessText gs = 
@@ -50,16 +61,14 @@ outOfRangeText :: GuessRange -> String
 outOfRangeText range = 
         "Your guess should be between " 
      ++ show (fst $ range) 
-     ++ " and " 
+     ++ " and "
      ++ show (snd $ range)
 
--- TODO: Dont nest ifs
 safeRead :: GameState -> IO Integer
 safeRead gs = do
     s <- getLine
     if validGuess s
-        then
-            if guessIsInRange (guessRange gs) (read s)
+        then if guessIsInRange (guessRange gs) (read s)
                 then return $ read s
                 else putStrLn (outOfRangeText (guessRange gs)) >> safeRead gs
         else putStrLn "Only integers" >> safeRead gs

@@ -12,10 +12,10 @@ spec = do
            tooLowOrTooHighText 2 3 `shouldBe` "Too high"
     describe "correctGuessText" $
         do it "should show a text with the correct answer and number of tries" $
-               correctGuessText (GameState 2 2 (1, 100)) `shouldBe`
+               correctGuessText (GameState 2 2 (1, 100) []) `shouldBe`
                "2 is correct! It took you 2 tries."
            it "should only pluralize if not provded a 1" $
-               correctGuessText (GameState 2 2 (1, 100)) `shouldBe`
+               correctGuessText (GameState 2 2 (1, 100) []) `shouldBe`
                "2 is correct! It took you 2 tries."
     describe "validGuess" $
         it "checks if a string is an integer" $ do
@@ -40,3 +40,11 @@ spec = do
     describe "outOfRangeText" $
         it "should show a text with the guess range in it" $
             outOfRangeText (24, 87) `shouldBe` "Your guess should be between 24 and 87"
+    describe "guessRangeText" $
+        it "should display the correct range" $ do
+            let range = (12, 94)
+            guessRangeText range `shouldBe` "Valid guesses: 12 to 94"
+    describe "previousGuessesText" $
+        it "should display previous guesses" $ do
+            let guesses = [50, 25, 13]
+            previousGuessesText guesses `shouldBe` "Previous guesses: 50 25 13"
