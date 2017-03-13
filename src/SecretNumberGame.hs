@@ -3,6 +3,7 @@ module SecretNumberGame where
 import System.Random
 import System.Console.ANSI (clearScreen)
 import Text.Read (readMaybe)
+import Data.Maybe (isJust)
 
 type GuessRange = (Integer, Integer)
 type Answer     = Integer
@@ -43,10 +44,7 @@ correctGuessText gs =
         where tryOrTries n = if n == 1 then " try." else " tries."
 
 validGuess :: String -> Bool
-validGuess s =
-    case readMaybe s :: Maybe Integer of
-        Nothing -> False
-        Just s  -> True
+validGuess s = isJust (readMaybe s :: Maybe Integer)
 
 -- not using >= or <= because for some reason it didnt pass the tests. 
 guessIsInRange :: GuessRange -> Integer -> Bool
@@ -60,9 +58,9 @@ guessIsInRange range guess
 outOfRangeText :: GuessRange -> String
 outOfRangeText range = 
         "Your guess should be between " 
-     ++ show (fst $ range) 
+     ++ show (fst range) 
      ++ " and "
-     ++ show (snd $ range)
+     ++ show (snd range)
 
 safeRead :: GameState -> IO Integer
 safeRead gs = do
@@ -95,8 +93,8 @@ gameLoop gs = do
             putStrLn $ tooLowOrTooHighText (numberToGuess newState) s
             gameLoop $ GameState (numberToGuess newState) 
                                  (numTries newState + 1) 
-                                 (fst $ guessRange newState, snd $ guessRange newState)
-                                 (s:(previousGuesses gs))
+                                 (guessRange newState)
+                                 (s:previousGuesses gs)
 
 initGame :: IO ()
 initGame = do
