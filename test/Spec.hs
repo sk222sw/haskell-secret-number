@@ -27,17 +27,16 @@ spec = do
             guessIsInRange (23, 48) 28  `shouldBe` True
             guessIsInRange (23, 48) 1   `shouldBe` False
             guessIsInRange (23, 48) 99  `shouldBe` False
-            guessIsInRange (23, 48) 23  `shouldBe` False
-            guessIsInRange (23, 48) 48  `shouldBe` False
+            guessIsInRange (23, 48) 23  `shouldBe` True
+            guessIsInRange (23, 48) 48  `shouldBe` True
     describe "calculateNewRange" $ do
-        it "should make the lower range the guess if guess is too low" $ do
+        it "should make the lower range the guess+1 if guess is too low" $ do
             let oldRange = (34,93)
             let answer = 55
             let guess = 40
             calculateNewRange oldRange answer guess `shouldBe` (41,93)
-            calculateNewRange oldRange answer 90    `shouldBe` (41,89)
-        it "should make the lower range the guess if guess is too low" $
-            calculateNewRange (34,93) 55 70 `shouldBe` (34,70)
+        it "should make the higher range the guess-1 if guess is too high" $
+            calculateNewRange (34,93)  55     90    `shouldBe` (34,89)
     describe "outOfRangeText" $
         it "should show a text with the guess range in it" $
             outOfRangeText (24, 87) `shouldBe` "Your guess should be between 24 and 87"

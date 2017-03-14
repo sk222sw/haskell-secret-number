@@ -1,7 +1,7 @@
 module SecretNumberGame where
 
 import System.Random
-import System.Console.ANSI (clearScreen)
+import System.Console.ANSI
 import Text.Read (readMaybe)
 import Data.Maybe (isJust)
 import Control.Monad (unless)
@@ -37,8 +37,8 @@ previousGuessesText xs = init $ "Previous guesses: " ++ guessesToString xs
 
 calculateNewRange :: GuessRange -> Answer -> Guess -> GuessRange
 calculateNewRange range answer guess
-    | guess < answer = (guess, snd range)
-    | otherwise      = (fst range, guess)
+    | guess < answer = (succ guess, snd range)
+    | otherwise      = (fst range, pred guess)
 
 correctGuessText :: GameState -> String
 correctGuessText gs = 
@@ -56,8 +56,6 @@ guessIsInRange :: GuessRange -> Integer -> Bool
 guessIsInRange range guess
     | guess <  fst range = False
     | guess >  snd range = False
-    | guess == fst range = False
-    | guess == snd range = False
     | otherwise          = True
 
 outOfRangeText :: GuessRange -> String
@@ -85,8 +83,18 @@ tooLowOrTooHighText answer guess =
 renderStatus :: GameState -> IO ()
 renderStatus state = do
     clearScreen
+    if not $ null $ previousGuesses state 
+        then do
+            setSGR [SetColor Foreground Vivid Red]
+            if numberToGuess state > head (previousGuesses state)
+                then setSGR [SetColor Foreground Dull Red]  >> putStrLn "Too low" 
+                else setSGR [SetColor Foreground Vivid Red] >> putStrLn "Too high"
+        else putStrLn ""
+    setSGR [Reset]
+    setSGR [SetColor Foreground Dull White]
     putStrLn $ guessRangeText (guessRange state)
     putStrLn $ previousGuessesText (previousGuesses state) 
+    setSGR [Reset]
     putStrLn "Enter a number:"
 
 guessStatus :: Guess -> Integer -> GuessState
@@ -104,7 +112,6 @@ updateGuessRangeInState gs rn = GameState (numberToGuess gs)
 
 gameLoop :: GameState -> IO ()
 gameLoop gs = do
-    print $ numberToGuess gs
     renderStatus gs
     s <- safeRead gs
     let guess = s :: Integer
@@ -112,7 +119,9 @@ gameLoop gs = do
     if guessStatus guess (numberToGuess newState) == Correct
         then do
             clearScreen
+            setSGR [SetColor Foreground Vivid Green]
             putStrLn $ correctGuessText newState
+            setSGR [Reset]
         else do 
             putStrLn $ tooLowOrTooHighText (numberToGuess gs) s
             gameLoop $ GameState (numberToGuess newState) 
