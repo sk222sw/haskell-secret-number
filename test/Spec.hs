@@ -12,10 +12,10 @@ spec = do
            tooLowOrTooHighText 2 3 `shouldBe` "Too high"
     describe "correctGuessText" $
         do it "should show a text with the correct answer and number of tries" $
-               correctGuessText (GameState 2 2 (1, 100) []) `shouldBe`
+               correctGuessText (GameState 2 2 (1, 100) [] None) `shouldBe`
                "2 is correct! It took you 2 tries."
            it "should only pluralize if not provded a 1" $
-               correctGuessText (GameState 2 2 (1, 100) []) `shouldBe`
+               correctGuessText (GameState 2 2 (1, 100) [] None) `shouldBe`
                "2 is correct! It took you 2 tries."
     describe "validGuess" $
         it "checks if a string is an integer" $ do
@@ -34,7 +34,8 @@ spec = do
             let oldRange = (34,93)
             let answer = 55
             let guess = 40
-            calculateNewRange oldRange answer guess `shouldBe` (40,93)
+            calculateNewRange oldRange answer guess `shouldBe` (41,93)
+            calculateNewRange oldRange answer 90    `shouldBe` (41,89)
         it "should make the lower range the guess if guess is too low" $
             calculateNewRange (34,93) 55 70 `shouldBe` (34,70)
     describe "outOfRangeText" $
@@ -48,3 +49,17 @@ spec = do
         it "should display previous guesses" $ do
             let guesses = [50, 25, 13]
             previousGuessesText guesses `shouldBe` "Previous guesses: 50 25 13"
+    describe "guessStatus" $
+        it "should return the correct guess status" $ do
+            let guess = 40
+            let answer = 50
+            guessStatus guess answer `shouldBe` Low
+            guessStatus 30    100    `shouldBe` Low
+            guessStatus 50    50     `shouldBe` Correct
+    describe "updateGuessRangeInState" $
+        it "should return the game state with an updated range" $ do
+            let oldState = GameState 23 2 (23, 90) [22, 91] Low
+            let expected = GameState 23 2 (30, 90) [22, 91] Low
+            let newRange = (30, 90)
+            updateGuessRangeInState oldState newRange `shouldBe` expected
+
