@@ -8,7 +8,7 @@ import Control.Monad (unless)
 
 type GuessRange = (Integer, Integer)
 type Answer     = Integer
-type Guess      = Integer
+type Guess      = (Integer, GuessState)
 
 type Low = String
 type Hight = String
@@ -37,8 +37,8 @@ previousGuessesText xs = init $ "Previous guesses: " ++ guessesToString xs
 
 calculateNewRange :: GuessRange -> Answer -> Guess -> GuessRange
 calculateNewRange range answer guess
-    | guess < answer = (succ guess, snd range)
-    | otherwise      = (fst range, pred guess)
+    | snd guess == Low = (succ $ fst guess, snd range)
+    | otherwise        = (fst range, pred $ fst guess)
 
 correctGuessText :: GameState -> String
 correctGuessText gs = 
@@ -51,7 +51,7 @@ correctGuessText gs =
 validGuess :: String -> Bool
 validGuess s = isJust (readMaybe s :: Maybe Integer)
 
--- not using >= or <= because for some reason it didnt pass the tests. 
+-- -- not using >= or <= because for some reason it didnt pass the tests. 
 guessIsInRange :: GuessRange -> Integer -> Bool
 guessIsInRange range guess
     | guess <  fst range = False
@@ -74,9 +74,9 @@ safeRead gs = do
                 else putStrLn (outOfRangeText (guessRange gs)) >> safeRead gs
         else putStrLn "Only integers" >> safeRead gs
 
-tooLowOrTooHighText :: Integer -> Integer -> String
-tooLowOrTooHighText answer guess =
-    if answer > guess 
+tooLowOrTooHighText :: Guess -> String
+tooLowOrTooHighText guess =
+    if snd guess == Low 
         then "Too low" 
         else "Too high"
 
@@ -86,7 +86,7 @@ renderStatus state = do
     if not $ null $ previousGuesses state 
         then do
             setSGR [SetColor Foreground Vivid Red]
-            if numberToGuess state > head (previousGuesses state)
+            if lastGuessState state == Low
                 then setSGR [SetColor Foreground Dull Red]  >> putStrLn "Too low" 
                 else setSGR [SetColor Foreground Vivid Red] >> putStrLn "Too high"
         else putStrLn ""
@@ -97,11 +97,11 @@ renderStatus state = do
     setSGR [Reset]
     putStrLn "Enter a number:"
 
-guessStatus :: Guess -> Integer -> GuessState
+guessStatus :: Integer -> Integer -> Guess
 guessStatus guess answer
-    | guess < answer  = Low
-    | guess > answer  = High
-    | guess == answer = Correct
+    | guess < answer  = (guess, Low)
+    | guess > answer  = (guess, High)
+    | guess == answer = (guess, Correct)
 
 updateGuessRangeInState :: GameState -> GuessRange -> GameState
 updateGuessRangeInState gs rn = GameState (numberToGuess gs)
@@ -114,21 +114,23 @@ gameLoop :: GameState -> IO ()
 gameLoop gs = do
     renderStatus gs
     s <- safeRead gs
-    let guess = s :: Integer
-    let newState = updateGuessRangeInState gs (calculateNewRange (guessRange gs) (numberToGuess gs) s)
-    if guessStatus guess (numberToGuess newState) == Correct
+    let guessInt = s :: Integer
+    let guess = guessStatus guessInt (numberToGuess gs)
+    let newState = updateGuessRangeInState gs (calculateNewRange (guessRange gs) (numberToGuess gs) guess)
+    let state = GameState 23 1 (1, 100) [(1, Low), (2, Low)] Low
+    if snd guess == Correct
         then do
             clearScreen
             setSGR [SetColor Foreground Vivid Green]
             putStrLn $ correctGuessText newState
             setSGR [Reset]
         else do 
-            putStrLn $ tooLowOrTooHighText (numberToGuess gs) s
+            putStrLn $ tooLowOrTooHighText guess
             gameLoop $ GameState (numberToGuess newState) 
                                  (numTries newState + 1) 
                                  (guessRange newState)
-                                 (s:previousGuesses gs)
-                                 (guessStatus s (numberToGuess gs))
+                                 (guess:previousGuesses gs)
+                                 (snd guess)
 
 initGame :: IO ()
 initGame = do
