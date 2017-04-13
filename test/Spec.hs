@@ -8,8 +8,8 @@ spec :: Spec
 spec = do
     describe "tooLowOrTooHighText" $
         it "should return too low if guess is lower than answer" $
-        do tooLowOrTooHighText 2 1 `shouldBe` "Too low"
-           tooLowOrTooHighText 2 3 `shouldBe` "Too high"
+        do tooLowOrTooHighText (1, Low) `shouldBe` "Too low"
+           tooLowOrTooHighText (2, High) `shouldBe` "Too high"
     describe "correctGuessText" $
         do it "should show a text with the correct answer and number of tries" $
                correctGuessText (GameState 2 2 (1, 100) [] None) `shouldBe`
@@ -33,10 +33,10 @@ spec = do
         it "should make the lower range the guess+1 if guess is too low" $ do
             let oldRange = (34,93)
             let answer = 55
-            let guess = 40
-            calculateNewRange oldRange answer guess `shouldBe` (41,93)
+            let guess = (40, Low)
+            calculateNewRange oldRange answer guess      `shouldBe` (41,93)
         it "should make the higher range the guess-1 if guess is too high" $
-            calculateNewRange (34,93)  55     90    `shouldBe` (34,89)
+            calculateNewRange (34,93)  55     (90, High) `shouldBe` (34,89)
     describe "outOfRangeText" $
         it "should show a text with the guess range in it" $
             outOfRangeText (24, 87) `shouldBe` "Your guess should be between 24 and 87"
@@ -46,19 +46,19 @@ spec = do
             guessRangeText range `shouldBe` "Valid guesses: 12 to 94"
     describe "previousGuessesText" $
         it "should display previous guesses" $ do
-            let guesses = [50, 25, 13]
-            previousGuessesText guesses `shouldBe` "Previous guesses: 50 25 13"
+            let guesses = [(50, Correct), (25, Low), (13, High)]
+            previousGuessesText guesses `shouldBe` "Previous guesses: (50,Correct) (25,Low) (13,High)"
     describe "guessStatus" $
         it "should return the correct guess status" $ do
             let guess = 40
             let answer = 50
-            guessStatus guess answer `shouldBe` Low
-            guessStatus 30    100    `shouldBe` Low
-            guessStatus 50    50     `shouldBe` Correct
+            guessStatus guess answer `shouldBe` (40, Low)
+            guessStatus 90    50    `shouldBe` (90, High)
+            guessStatus 50    50     `shouldBe` (50, Correct)
     describe "updateGuessRangeInState" $
         it "should return the game state with an updated range" $ do
-            let oldState = GameState 23 2 (23, 90) [22, 91] Low
-            let expected = GameState 23 2 (30, 90) [22, 91] Low
+            let oldState = GameState 23 2 (23, 90) [(22, Low), (91, High)] Low
+            let expected = GameState 23 2 (30, 90) [(22, Low), (91, High)] Low
             let newRange = (30, 90)
             updateGuessRangeInState oldState newRange `shouldBe` expected
 
